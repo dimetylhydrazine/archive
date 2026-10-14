@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="breadcrumbs">
+    <a href="{% url 'videoplayer:video_list' %}">видео</a>
+    {% if playlist.channel %}
+        / <a href="{% url 'videoplayer:channel_detail' playlist.channel.slug %}">{{ playlist.channel.name }}</a>
+    {% endif %}
+    {% if playlist.parent %}
+        / <a href="{% url 'videoplayer:playlist_detail' playlist.parent.pk %}">{{ playlist.parent.name }}</a>
+    {% endif %}
+    / <span>{{ playlist.name }}</span>
+</div>
+
+<div class="content-header">
+    <h2>
+        {{ playlist.name }}
+        <span class="count">
+            {% if total_videos %}{{ total_videos }} видео{% endif %}
+            {% if total_videos and total_audios %} · {% endif %}
+            {% if total_audios %}{{ total_audios }} аудио{% endif %}
+        </span>
+    </h2>
+</div>
+
+{% if children %}
+<section class="section">
+    <h3 class="section-title">Вложенные плейлисты</h3>
+    <div class="playlists">
+        {% for p in children %}
+            {% include 'videoplayer/_playlist_card.html' with p=p %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if videos_page %}
+<section class="section">
+    <h3 class="section-title">Видео</h3>
+    <div class="cards">
+        {% for v in videos_page %}
+            {% include 'videoplayer/_card.html' with v=v %}
+        {% endfor %}
+    </div>
+    {% include 'videoplayer/_pagination.html' with page_obj=videos_page paginator=videos_paginator %}
+</section>
+{% endif %}
+
+{% if audios_page %}
+<section class="section">
+    <h3 class="section-title">Аудио</h3>
+    <div class="cards">
+        {% for a in audios_page %}
+            {% include 'videoplayer/_audio_card.html' with a=a %}
+        {% endfor %}
+    </div>
+    {% include 'videoplayer/_pagination.html' with page_obj=audios_page paginator=audios_paginator %}
+</section>
+{% endif %}
+
+{% if not children and not videos_page and not audios_page %}
+    <p class="empty">Плейлист пуст.</p>
+{% endif %}
+{% endblock content %}

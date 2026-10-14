@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load duration %}
+{% load static %}
+
+{% block content %}
+<div class="video-page">
+
+    <div class="breadcrumbs">
+        <a href="{% url 'videoplayer:video_list' %}">видео</a>
+        {% if video.channel %}
+            / <a href="{% url 'videoplayer:channel_detail' video.channel.slug %}">{{ video.channel.name }}</a>
+        {% endif %}
+        {% if video.playlist %}
+            / <span>{{ video.playlist.name }}</span>
+        {% endif %}
+    </div>
+
+    <h1 class="video-title">{{ video.title }}</h1>
+
+        <div class="video-player">
+            <video class="js-player" playsinline
+                {% if video.thumbnail_path %}poster="{{ MEDIA_URL }}{{ video.thumbnail_path }}"{% endif %}>
+                <source src="{{ MEDIA_URL }}{{ video.file_path }}" type="video/mp4">
+            </video>
+        </div>
+
+    <div class="video-meta">
+        <div class="video-info">
+            {% if video.recorded_at %}
+                <span><strong>Дата:</strong> {{ video.recorded_at }}</span>
+            {% endif %}
+            {% if video.duration %}
+                <span><strong>Длительность:</strong> {{ video.duration|duration }} сек</span>
+            {% endif %}
+            {% if video.size %}
+                <span><strong>Размер:</strong> {{ video.size|filesizeformat }}</span>
+            {% endif %}
+        </div>
+        <div class="video-actions">
+            <a href="{{ MEDIA_URL }}{{ video.file_path }}" download class="btn">скачать</a>
+        </div>
+    </div>
+
+    {% if prev_video or next_video %}
+    <nav class="video-nav">
+        {% if prev_video %}
+            <a href="{% url 'videoplayer:video_detail' prev_video.pk %}" class="btn">
+                ← {{ prev_video.title|truncatechars:50 }}
+            </a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        {% if next_video %}
+            <a href="{% url 'videoplayer:video_detail' next_video.pk %}" class="btn">
+                {{ next_video.title|truncatechars:50 }} →
+            </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+</div>
+
+<script src="{% static 'vendor/plyr/plyr.js' %}"></script>
+<script src="{% static 'js/videoplayer.js' %}"></script>
+
+{% endblock content %}
+

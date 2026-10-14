@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load duration %}
+
+{% block content %}
+<div class="audio-page">
+
+    {% include 'videoplayer/_breadcrumbs.html' with item=video %}
+    {% include 'videoplayer/_breadcrumbs.html' with item=audio %}
+
+    <div class="audio-layout">
+        <div class="audio-cover">
+            {% if audio.cover_path %}
+                <img src="{{ MEDIA_URL }}{{ audio.cover_path }}" alt="{{ audio.title }}">
+            {% else %}
+                <div class="no-preview">
+                    <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M9 18V5l12-2v13"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="16" r="3"/>
+                    </svg>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="audio-info">
+            <h1 class="audio-title">{{ audio.title }}</h1>
+            <div class="audio-meta">
+                {% if audio.recorded_at %}<span>{{ audio.recorded_at }}</span>{% endif %}
+                {% if audio.duration %}<span>{{ audio.duration|duration }} сек</span>{% endif %}
+                {% if audio.size %}<span>{{ audio.size|filesizeformat }}</span>{% endif %}
+            </div>
+
+            <audio controls preload="metadata" class="audio-player">
+                <source src="{{ MEDIA_URL }}{{ audio.file_path }}">
+                Твой браузер не поддерживает аудио.
+            </audio>
+
+            <div class="audio-actions">
+                <a href="{{ MEDIA_URL }}{{ audio.file_path }}" download class="btn">скачать</a>
+            </div>
+        </div>
+    </div>
+
+    {% if prev_audio or next_audio %}
+    <nav class="video-nav">
+        {% if prev_audio %}
+            <a href="{% url 'videoplayer:audio_detail' prev_audio.pk %}" class="btn">
+                ← {{ prev_audio.title|truncatechars:50 }}
+            </a>
+        {% else %}<span></span>{% endif %}
+        {% if next_audio %}
+            <a href="{% url 'videoplayer:audio_detail' next_audio.pk %}" class="btn">
+                {{ next_audio.title|truncatechars:50 }} →
+            </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+</div>
+{% endblock content %}

@@ -1,0 +1,8 @@
+<a href="{% url 'videoplayer:playlist_detail' p.pk %}" class="playlist-card">
+    <div class="playlist-name">{{ p.name }}</div>
+    <div class="playlist-meta">
+        {% if p.videos_count %}<small>{{ p.videos_count }} видео</small>{% endif %}
+        {% if p.audios_count %}<small>{{ p.audios_count }} аудио</small>{% endif %}
+        {% if p.children_count %}<small>{{ p.children_count }} вложенных</small>{% endif %}
+    </div>
+</a>

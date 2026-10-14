@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <title>Регистрация — Архив</title>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h1 class="auth-title">Регистрация</h1>
+
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="form-field{% if field.errors %} has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="field-errors">
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="field-help">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="auth-btn">Создать аккаунт</button>
+            </form>
+
+            <p class="auth-alt">
+                Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <h2>
+        {% if q %}
+            Поиск: <span class="count">{{ q }}</span>
+            {% if total %} — найдено {{ total }}{% endif %}
+        {% else %}
+            Поиск
+        {% endif %}
+    </h2>
+</div>
+
+{% if q %}
+    {% if videos %}
+    <section class="section">
+        <h3 class="section-title">Видео ({{ videos|length }})</h3>
+        <div class="cards">
+            {% for v in videos %}
+                {% include 'videoplayer/_card.html' with v=v %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if audios %}
+    <section class="section">
+        <h3 class="section-title">Аудио ({{ audios|length }})</h3>
+        <div class="cards">
+            {% for a in audios %}
+                {% include 'videoplayer/_audio_card.html' with a=a %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not videos and not audios %}
+        <p class="empty">Ничего не найдено по запросу «{{ q }}».</p>
+    {% endif %}
+{% else %}
+    <p class="empty">Введи запрос в строку поиска.</p>
+{% endif %}
+{% endblock content %}

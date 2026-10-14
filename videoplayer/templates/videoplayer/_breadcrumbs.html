@@ -1,0 +1,10 @@
+<div class="breadcrumbs">
+    <a href="{% url 'videoplayer:video_list' %}">видео</a>
+    {% if item.channel %}
+        / <a href="{% url 'videoplayer:channel_detail' item.channel.slug %}">{{ item.channel.name }}</a>
+    {% endif %}
+    {% if item.playlist %}
+        / <a href="{% url 'videoplayer:playlist_detail' item.playlist.pk %}">{{ item.playlist.name }}</a>
+    {% endif %}
+    / <span>{{ item.title }}</span>
+</div>

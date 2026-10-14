@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Каналы <span class="count">{{ channels|length }}</span></h2>
+</div>
+
+{% if channels %}
+    <div class="channels">
+        {% for channel in channels %}
+            <a href="{% url 'videoplayer:channel_detail' channel.slug %}" class="channel-card">
+                <div class="channel-name">{{ channel.name }}</div>
+                <div class="channel-meta">
+                    <small>{{ channel.videos_count }} видео {{channel.audios_count}} аудио</small>
+                    {% if channel.playlists_count %}
+                        <small>{{ channel.playlists_count }} плейлистов</small>
+                    {% endif %}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="empty">Каналов пока нет.</p>
+{% endif %}
+{% endblock content %}

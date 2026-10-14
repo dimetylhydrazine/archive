@@ -1,0 +1,33 @@
+{% load duration %}
+
+<div class="card">
+    <a href="{% url 'videoplayer:video_detail' v.pk %}" class="preview">
+        {% if v.thumbnail_path %}
+            <img src="{{ MEDIA_URL }}{{ v.thumbnail_path }}"
+                 alt="{{ v.title }}" loading="lazy">
+        {% else %}
+            <div class="no-preview">нет превью</div>
+        {% endif %}
+    </a>
+    <div class="meta">
+        <div class="title">
+            <h3>
+                <a href="{% url 'videoplayer:video_detail' v.pk %}">{{ v.title }}</a>
+            </h3>
+        </div>
+        {% if v.duration %}
+            <span class="duration-badge">{{ v.duration|duration }}</span>
+        {% endif %}
+        <div class="published">
+            {% if v.channel %}
+                <small>
+                    {{ v.channel.name }}
+                    {% if v.playlist %} · {{ v.playlist.name }}{% endif %}
+                </small>
+            {% endif %}
+            {% if v.recorded_at %}
+                <small class="date">{{ v.recorded_at }}</small>
+            {% endif %}
+        </div>
+    </div>
+</div>

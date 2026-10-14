@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Видео <span class="count">{{ paginator.count }}</span></h2>
+    <div class="actions">
+        <a href="?shuffle=1" class="btn">перемешать</a>
+    </div>
+</div>
+
+{% if page_obj %}
+    <div class="cards">
+        {% for v in page_obj %}
+            {% include 'videoplayer/_card.html' with v=v %}
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="empty">Видео нет.</p>
+{% endif %}
+
+{% include 'videoplayer/_pagination.html' with page_obj=page_obj paginator=paginator %}
+{% endblock content %}

@@ -1,0 +1,143 @@
+/* ============================================================
+   PLYR — ТЁМНАЯ ТЕМА С КРАСНЫМ АКЦЕНТОМ
+   ============================================================ */
+
+/* ---------- CSS-переменные Plyr ---------- */
+:root {
+    /* основной цвет */
+    --plyr-color-main: #e53935;
+
+    /* видео */
+    --plyr-video-background: #000;
+    --plyr-video-control-color: #fff;
+    --plyr-video-control-color-hover: #fff;
+    --plyr-video-control-background-hover: #e53935;
+
+    /* аудио */
+    --plyr-audio-control-color: #e8e8e8;
+    --plyr-audio-control-color-hover: #fff;
+    --plyr-audio-control-background-hover: #e53935;
+
+    /* меню (настройки, скорость) */
+    --plyr-menu-background: rgba(30, 30, 30, 0.98);
+    --plyr-menu-color: #e8e8e8;
+    --plyr-menu-arrow-color: #e8e8e8;
+    --plyr-menu-back-border-color: #2a2a2a;
+    --plyr-menu-border-shadow-color: #000;
+
+    /* шрифт */
+    --plyr-font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --plyr-font-size-base: 13px;
+    --plyr-font-size-small: 12px;
+}
+
+
+/* ---------- Контейнер ---------- */
+.plyr {
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-family: var(--plyr-font-family);
+}
+
+
+/* ---------- Прогресс-бар ---------- */
+.plyr--video .plyr__progress__buffer {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* Большая кнопка play поверх превью */
+.plyr--video .plyr__control--overlaid {
+    background: rgba(229, 57, 53, 0.9);
+    padding: 22px;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.plyr--video .plyr__control--overlaid:hover {
+    background: #e53935;
+    transform: scale(1.05);
+}
+
+
+/* ---------- Меню настроек (скорость, качество) ---------- */
+.plyr__menu__container {
+    background: rgba(30, 30, 30, 0.98);
+    border-radius: var(--radius);
+}
+
+.plyr__menu__container .plyr__control {
+    color: #e8e8e8;
+    transition: background 0.15s, color 0.15s;
+}
+
+.plyr__menu__container .plyr__control:hover {
+    background: rgba(229, 57, 53, 0.15);
+    color: #fff;
+}
+
+.plyr__menu__container .plyr__control[aria-checked="true"] {
+    color: #e53935;
+}
+
+
+/* ---------- Панель управления (нижняя) ---------- */
+.plyr__controls {
+    color: #e8e8e8;
+}
+
+.plyr__control:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+
+/* ============================================================
+   FULLSCREEN — убираем ВСЕ ограничения
+   ============================================================ */
+
+/* Plyr-класс (надёжнее, чем :fullscreen) */
+.plyr--fullscreen {
+    max-height: none !important;
+    max-width: none !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    border-radius: 0 !important;
+    aspect-ratio: auto !important;
+}
+
+.plyr--fullscreen video {
+    max-height: none !important;
+    max-width: none !important;
+    height: 100% !important;
+    width: 100% !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+}
+
+/* Псевдокласс :fullscreen — на случай, если Plyr-класс не сработал */
+.plyr:fullscreen,
+.plyr:-webkit-full-screen {
+    max-height: none !important;
+    max-width: none !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    border-radius: 0 !important;
+}
+
+.plyr:fullscreen video,
+.plyr:-webkit-full-screen video {
+    max-height: none !important;
+    max-width: none !important;
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: contain !important;
+}
+
+
+/* ---------- Настройки размера плеера в обычном режиме ---------- */
+.video-player {
+    position: relative;
+    background: #000;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
