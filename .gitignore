@@ -41,3 +41,4 @@ htmlcov/
 
 # test
 .pytest_cache/
+.settings.py.old
