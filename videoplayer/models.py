@@ -1,5 +1,6 @@
 # archive/models.py
 from django.db import models
+from django.contrib.postgres.indexes import GinIndex
 
 
 class Channel(models.Model):
@@ -62,6 +63,11 @@ class Video(models.Model):
         indexes = [
             models.Index(fields=['channel', 'playlist']),
             models.Index(fields=['recorded_at']),
+            GinIndex(
+                fields=['title'],
+                name='video_title_trgm',
+                opclasses=['gin_trgm_ops'],
+            ),
         ]
 
     def __str__(self):
@@ -104,6 +110,11 @@ class Audio(models.Model):
         indexes = [
             models.Index(fields=['channel', 'playlist']),
             models.Index(fields=['recorded_at']),
+            GinIndex(
+                fields=['title'],
+                name='audio_title_trgm',
+                opclasses=['gin_trgm_ops'],
+            ),
         ]
 
     def __str__(self):

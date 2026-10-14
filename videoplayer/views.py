@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404
 
 from .models import Video, Channel, Playlist, Audio
 from .search import search_model
+from django.contrib.auth.decorators import login_required
 
 
 PAGE_SIZE = 24
@@ -50,6 +51,7 @@ def _paginate(request, qs, per_page=PAGE_SIZE):
 
 # ---------- Списки ----------
 
+@login_required
 def video_list(request):
     qs, seed = _shuffled_qs(request, Video)
     paginator, page_obj = _paginate(request, qs)
@@ -59,7 +61,7 @@ def video_list(request):
         'shuffle_seed': seed,
     })
 
-
+@login_required
 def audio_list(request):
     qs, seed = _shuffled_qs(request, Audio)
     paginator, page_obj = _paginate(request, qs)
@@ -69,7 +71,7 @@ def audio_list(request):
         'shuffle_seed': seed,
     })
 
-
+@login_required
 def channel_list(request):
     channels = (
         Channel.objects
@@ -87,7 +89,7 @@ def channel_list(request):
 
 
 # ---------- Детали ----------
-
+@login_required
 def channel_detail(request, slug):
     channel = get_object_or_404(Channel, slug=slug, is_visible=True)
 
@@ -130,7 +132,7 @@ def channel_detail(request, slug):
         'total_audios': channel.audios.count(),
     })
 
-
+@login_required
 def playlist_detail(request, pk):
     playlist = get_object_or_404(
         Playlist.objects.select_related('channel', 'parent'),
@@ -164,7 +166,7 @@ def playlist_detail(request, pk):
         'total_audios': playlist.audios.count(),
     })
 
-
+@login_required
 def video_detail(request, pk):
     video = get_object_or_404(
         Video.objects.select_related('channel', 'playlist'),
@@ -178,7 +180,7 @@ def video_detail(request, pk):
         'next_video': next_video,
     })
 
-
+@login_required
 def audio_detail(request, pk):
     audio = get_object_or_404(
         Audio.objects.select_related('channel', 'playlist'),
@@ -208,6 +210,7 @@ def _neighbors(item):
 
 from .search import search_model
 
+@login_required
 def search(request):
     q = request.GET.get('q', '').strip()
     videos = Video.objects.none()
