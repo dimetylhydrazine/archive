@@ -3,6 +3,11 @@
 
     document.querySelectorAll('.js-player').forEach(function (el) {
         const player = new Plyr(el, {
+            fullscreen: {
+                enabled: true,
+                fallback: false, // Запрещает эмуляцию внутри окна — требует настоящий fullscreen браузера
+                iosNative: true,  // На смартфонах передает управление нативному системному просмотрщику
+            },
             controls: [
                 'play-large', 'restart', 'rewind', 'play',
                 'fast-forward', 'progress', 'current-time', 'duration',
@@ -42,6 +47,30 @@
                 enabled: 'Вкл',
                 advertisement: 'Реклама',
             },
+        });
+
+        // Принудительный запрос нативного Fullscreen API браузера (прячет адресную строку)
+        player.on('enterfullscreen', function () {
+            const container = player.elements.container;
+            if (container.requestFullscreen) {
+                container.requestFullscreen().catch(function () {});
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (container.mozRequestFullScreen) {
+                container.mozRequestFullScreen();
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen();
+            }
+        });
+
+        player.on('exitfullscreen', function () {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(function () {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
         });
 
         // запоминание позиции
