@@ -11,7 +11,7 @@
             controls: [
                 'play-large', 'restart', 'rewind', 'play',
                 'fast-forward', 'progress', 'current-time', 'duration',
-                'volume', 'settings', 'pip', 'fullscreen'
+                'volume', 'settings', 'pip', 'fullscreen', 'download'
             ],
             settings: ['speed'],
             speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] },
