@@ -1,0 +1,22 @@
+<div class="card">
+    <a href="{{ MEDIA_URL }}{{ d.file_path }}" target="_blank" rel="noopener" class="preview">
+        {% if d.cover_path %}
+            <img src="{{ MEDIA_URL }}{{ d.cover_path }}" alt="{{ d.title }}" loading="lazy">
+        {% else %}
+            <div class="no-preview">PDF</div>
+        {% endif %}
+    </a>
+    <div class="meta">
+        <div class="title">
+            <h3>
+                <a href="{{ MEDIA_URL }}{{ d.file_path }}" target="_blank" rel="noopener">
+                    {{ d.title }}
+                </a>
+            </h3>
+        </div>
+        <div class="published">
+            <small>{{ d.channel.name }}</small>
+            {% if d.recorded_at %}<small class="date">{{ d.recorded_at }}</small>{% endif %}
+        </div>
+    </div>
+</div>

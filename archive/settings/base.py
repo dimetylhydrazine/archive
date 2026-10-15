@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'users',
     'videoplayer',
     'core',
+    'documents',
 ]
 
 MIDDLEWARE = [

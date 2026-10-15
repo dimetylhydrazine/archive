@@ -49,6 +49,11 @@
                     <span>аудио</span>
             </a>
 
+            <a href="{% url 'documents:document_list' %}"
+                class="nav-block {% if 'documents' in request.resolver_match.namespace %}active{% endif %}">
+                    документы
+            </a>
+
             {% if user.is_authenticated %}
                 <div class="nav-right">
                     {% if user.is_staff %}

@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('users.urls')),
     path('', include('videoplayer.urls')),   # без префикса
     path('', include('core.urls')),          # без префикса
+    path('', include('documents.urls')),
 ]
 
 if settings.DEBUG:
