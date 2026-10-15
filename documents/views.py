@@ -99,3 +99,37 @@ def playlist_detail(request, pk):
         'documents': documents,
         'total_documents': playlist.documents.count(),
     })
+
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.shortcuts import render, get_object_or_404
+
+from .models import Document, Category
+from .search import search_documents
+
+
+def document_search(request):
+    q = request.GET.get('q', '').strip()
+    category_slug = request.GET.get('category', '').strip()
+
+    qs = Document.objects.none()
+    if q:
+        qs = search_documents(q, limit=200)
+        if category_slug:
+            current_cat = get_object_or_404(Category, slug=category_slug)
+            qs = qs.filter(categories=current_cat)
+
+    paginator = Paginator(qs, 24)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    categories = Category.objects.annotate(
+        documents_count=Count('documents', distinct=True)
+    ).order_by('name')
+
+    return render(request, 'documents/document_search.html', {
+        'q': q,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'categories': categories,
+        'current_category': get_object_or_404(Category, slug=category_slug) if category_slug else None,
+    })

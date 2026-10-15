@@ -1,32 +1,25 @@
-{% extends 'base.html' %}
+{% extends 'documents/base.html' %}
 
 {% block content %}
 <div class="content-header">
     <h2>
-        {% if current_category %}
-            {{ current_category.name }}
-        {% else %}
-            Документы
-        {% endif %}
+        {% if current_category %}{{ current_category.name }}{% else %}Документы{% endif %}
         <span class="count">{{ paginator.count }}</span>
     </h2>
 </div>
 
 {% if categories %}
 <div class="category-bar">
-    <a href="{% url 'documents:document_list' %}"
-       class="nav-block {% if not current_category %}active{% endif %}">
-        все
-    </a>
+    <a href="{% url 'documents:document_list' %}" class="nav-block {% if not current_category %}active{% endif %}">все</a>
     {% for c in categories %}
         <a href="?category={{ c.slug }}"
            class="nav-block {% if current_category and current_category.pk == c.pk %}active{% endif %}">
-            {{ c.name }}
-            <span class="cat-count">{{ c.documents_count }}</span>
+            {{ c.name }} <span class="cat-count">{{ c.documents_count }}</span>
         </a>
     {% endfor %}
 </div>
 {% endif %}
+
 
 {% if page_obj %}
     <div class="cards">
@@ -45,4 +38,5 @@
 {% endif %}
 
 {% include 'videoplayer/_pagination.html' with page_obj=page_obj paginator=paginator %}
+
 {% endblock content %}

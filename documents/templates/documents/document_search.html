@@ -1,0 +1,37 @@
+{% extends 'documents/base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <h2>
+        Поиск: <span class="count">{{ q }}</span>
+        {% if paginator.count %} — {{ paginator.count }} найдено{% endif %}
+    </h2>
+</div>
+
+{% if categories %}
+<div class="category-bar">
+    <a href="{% url 'documents:document_search' %}?q={{ q }}"
+       class="nav-block {% if not current_category %}active{% endif %}">все</a>
+    {% for c in categories %}
+        <a href="?q={{ q }}&category={{ c.slug }}"
+           class="nav-block {% if current_category and current_category.pk == c.pk %}active{% endif %}">
+            {{ c.name }} <span class="cat-count">{{ c.documents_count }}</span>
+        </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if page_obj %}
+    <div class="cards">
+        {% for d in page_obj %}
+            {% include 'documents/_document_card.html' with d=d %}
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="empty">
+        {% if q %}Ничего не найдено по запросу «{{ q }}».{% else %}Введи запрос.{% endif %}
+    </p>
+{% endif %}
+
+{% include 'videoplayer/_pagination.html' with page_obj=page_obj paginator=paginator %}
+{% endblock content %}

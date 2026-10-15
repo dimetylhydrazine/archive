@@ -1,0 +1,11 @@
+<a href="{{ MEDIA_URL }}{{ img.file_path }}"
+   target="_blank" rel="noopener"
+   class="gallery-card"
+   title="{{ img.title }}">
+    {% if img.thumb_path %}
+        <img src="{{ MEDIA_URL }}{{ img.thumb_path }}"
+             alt="{{ img.title }}" loading="lazy">
+    {% else %}
+        <div class="gallery-no-preview">?</div>
+    {% endif %}
+</a>

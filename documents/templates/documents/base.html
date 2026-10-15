@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/plyr/plyr.css' %}">
+    <link rel="stylesheet" href="{% static 'css/plyr_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Архив</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <a href="{% url 'videoplayer:video_list' %}" class="logo">archive</a>
+
+            <form method="get" action="{% url 'documents:document_search' %}" class="search-form-docs">
+                <input type="search" name="q" placeholder="поиск по документам..."
+                    value="{{ request.GET.q|default:'' }}" autocomplete="off">
+                <button type="submit" aria-label="Найти">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+            </form>
+        </header>
+
+        <nav class="nav">
+            <a href="{% url 'videoplayer:video_list' %}"
+            class="nav-block {% if request.resolver_match.url_name == 'video_list' or request.resolver_match.url_name == 'video_detail' %}active{% endif %}">
+                <span>видео</span>
+            </a>
+            <a href="{% url 'videoplayer:channel_list' %}"
+            class="nav-block {% if request.resolver_match.url_name == 'channel_list' or request.resolver_match.url_name == 'channel_detail' or request.resolver_match.url_name == 'playlist_detail' %}active{% endif %}">
+                <span>каналы</span>
+            </a>
+            <a href="{% url 'videoplayer:audio_list' %}"
+                class="nav-block {% if request.resolver_match.url_name == 'audio_list' or request.resolver_match.url_name == 'audio_detail' %}active{% endif %}">
+                    <span>аудио</span>
+            </a>
+
+            <a href="{% url 'gallery:image_list' %}"
+                class="nav-block {% if 'gallery' in request.resolver_match.namespace %}active{% endif %}">
+                    галерея
+            </a>
+
+            <a href="{% url 'documents:document_list' %}"
+                class="nav-block {% if 'documents' in request.resolver_match.namespace %}active{% endif %}">
+                    документы
+            </a>
+
+            {% if user.is_authenticated %}
+                <div class="nav-right">
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="nav-block nav-admin" target="_blank" rel="noopener">
+                            <span>админка</span>
+                        </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-block">выйти</button>
+                    </form>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-block nav-right">войти</a>
+            {% endif %}
+
+            
+        </nav>
+
+
+        <main class="content">
+            {% block content %}
+            {% endblock content %}
+
+        </main>
+    </div>
+</body>
+</html>

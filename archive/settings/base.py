@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'videoplayer',
     'core',
     'documents',
+    'gallery',
 ]
 
 MIDDLEWARE = [

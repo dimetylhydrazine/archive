@@ -8,4 +8,5 @@ urlpatterns = [
     path('documents/channels/', views.channel_list, name='channel_list'),
     path('documents/channel/<slug:slug>/', views.channel_detail, name='channel_detail'),
     path('documents/playlist/<int:pk>/', views.playlist_detail, name='playlist_detail'),
+    path('documents/search/', views.document_search, name='document_search'),
 ]

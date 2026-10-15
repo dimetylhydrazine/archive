@@ -49,6 +49,11 @@
                     <span>аудио</span>
             </a>
 
+            <a href="{% url 'gallery:image_list' %}"
+                class="nav-block {% if 'gallery' in request.resolver_match.namespace %}active{% endif %}">
+                    галерея
+            </a>
+
             <a href="{% url 'documents:document_list' %}"
                 class="nav-block {% if 'documents' in request.resolver_match.namespace %}active{% endif %}">
                     документы
