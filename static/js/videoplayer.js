@@ -2,11 +2,13 @@
     'use strict';
 
     document.querySelectorAll('.js-player').forEach(function (el) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
         const player = new Plyr(el, {
             fullscreen: {
                 enabled: true,
-                fallback: false, // Запрещает эмуляцию внутри окна — требует настоящий fullscreen браузера
-                iosNative: true,  // На смартфонах передает управление нативному системному просмотрщику
+                fallback: true,    // ОБЯЗАТЕЛЬНО true, иначе Plyr удаляет кнопку из верстки на iOS
+                iosNative: 'native',
             },
             controls: [
                 'play-large', 'restart', 'rewind', 'play',
@@ -48,17 +50,20 @@
             },
         });
 
-        // Принудительный запрос нативного Fullscreen API браузера (прячет адресную строку)
+        // Обработка перехода в полноэкранный режим
         player.on('enterfullscreen', function () {
+            // На iOS запускаем нативный системный видеоплеер Apple
+            if (isIOS && el.webkitEnterFullscreen) {
+                el.webkitEnterFullscreen();
+                return;
+            }
+
+            // На Android и десктопах вызываем Fullscreen API браузера
             const container = player.elements.container;
-            if (container.requestFullscreen) {
+            if (container && container.requestFullscreen) {
                 container.requestFullscreen().catch(function () {});
-            } else if (container.webkitRequestFullscreen) {
+            } else if (container && container.webkitRequestFullscreen) {
                 container.webkitRequestFullscreen();
-            } else if (container.mozRequestFullScreen) {
-                container.mozRequestFullScreen();
-            } else if (container.msRequestFullscreen) {
-                container.msRequestFullscreen();
             }
         });
 
@@ -72,7 +77,7 @@
             }
         });
 
-        // запоминание позиции
+        // Запоминание позиции
         const src = el.querySelector('source')?.src;
         if (!src) return;
 
