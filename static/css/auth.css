@@ -188,11 +188,14 @@ body {
 }
 
 /* ---------- Адаптив ---------- */
-@media (max-width: 480px) {
+@media (max-width: 720px) {
     .auth-card {
         padding: 24px 20px;
     }
     .auth-title {
         font-size: 18px;
+    }
+    .auth-wrapper {
+        max-width: none;
     }
 }
