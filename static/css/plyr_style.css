@@ -59,12 +59,17 @@
 
 .plyr__video-wrapper {
     aspect-ratio: 16 / 9;
-    height: auto !important;
+}
+
+.video-player video {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .plyr video {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
 

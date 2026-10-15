@@ -3,7 +3,6 @@
 
     document.querySelectorAll('.js-player').forEach(function (el) {
         const player = new Plyr(el, {
-            ratio: '16:9',
             controls: [
                 'play-large', 'restart', 'rewind', 'play',
                 'fast-forward', 'progress', 'current-time', 'duration',
@@ -13,16 +12,35 @@
             settings: ['speed'],
             speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] },
             keyboard: { focused: true, global: false },
+            tooltips: { controls: true, seek: true },
             i18n: {
+                restart: 'Заново',
+                rewind: 'Назад {seektime} сек',
                 play: 'Играть',
                 pause: 'Пауза',
+                fastForward: 'Вперёд {seektime} сек',
+                seek: 'Перемотка',
+                played: 'Проиграно',
+                buffered: 'Буфер',
+                currentTime: 'Текущее время',
+                duration: 'Длительность',
+                volume: 'Громкость',
                 mute: 'Без звука',
                 unmute: 'Со звуком',
+                enterFullscreen: 'На весь экран',
+                exitFullscreen: 'Выйти из полноэкранного',
                 settings: 'Настройки',
                 speed: 'Скорость',
                 normal: 'Обычная',
-                fullscreen: 'На весь экран',
-                exitFullscreen: 'Выйти из полноэкранного',
+                quality: 'Качество',
+                loop: 'Повтор',
+                start: 'Начало',
+                end: 'Конец',
+                all: 'Все',
+                reset: 'Сброс',
+                disabled: 'Выкл',
+                enabled: 'Вкл',
+                advertisement: 'Реклама',
             },
         });
 

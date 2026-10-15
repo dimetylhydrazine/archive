@@ -18,7 +18,7 @@
     <h1 class="video-title">{{ video.title }}</h1>
 
         <div class="video-player">
-            <video class="js-player" playsinline
+            <video class="js-player" playsinline webkit-playsinline
                 {% if video.thumbnail_path %}poster="{{ MEDIA_URL }}{{ video.thumbnail_path }}"{% endif %}>
                 <source src="{{ MEDIA_URL }}{{ video.file_path }}" type="video/mp4">
             </video>

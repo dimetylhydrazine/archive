@@ -605,7 +605,6 @@ button {
 /* Покрываем все возможные классы Plyr в fullscreen */
 .plyr--fullscreen,
 .plyr--fullscreen-active,
-.plyr--fullscreen-enabled,
 .plyr--fullscreen-fallback,
 .plyr:fullscreen,
 .plyr:-webkit-full-screen {
@@ -622,7 +621,6 @@ button {
 
 .plyr--fullscreen video,
 .plyr--fullscreen-active video,
-.plyr--fullscreen-enabled video,
 .plyr--fullscreen-fallback video,
 .plyr:fullscreen video,
 .plyr:-webkit-full-screen video {
@@ -637,7 +635,6 @@ button {
 /* Plyr оборачивает видео в .plyr__video-wrapper */
 .plyr--fullscreen .plyr__video-wrapper,
 .plyr--fullscreen-active .plyr__video-wrapper,
-.plyr--fullscreen-enabled .plyr__video-wrapper,
 .plyr--fullscreen-fallback .plyr__video-wrapper,
 .plyr:fullscreen .plyr__video-wrapper,
 .plyr:-webkit-full-screen .plyr__video-wrapper {

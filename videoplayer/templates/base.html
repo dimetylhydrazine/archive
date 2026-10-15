@@ -8,9 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/plyr_style.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/plyr/plyr.css' %}">
+    <link rel="stylesheet" href="{% static 'css/plyr_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <title>Архив</title>
 </head>
 
@@ -75,62 +75,5 @@
 
         </main>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const players = document.querySelectorAll('.js-player');
-            players.forEach(function (el) {
-                new Plyr(el, {
-                    controls: [
-                        'play-large', 'restart', 'rewind', 'play',
-                        'fast-forward', 'progress', 'current-time', 'duration',
-                        'mute', 'volume', 'settings', 'pip', 'airplay',
-                        'download', 'fullscreen'
-                    ],
-                    settings: ['speed'],
-                    speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] },
-                    keyboard: { focused: true, global: false },
-                    tooltips: { controls: true, seek: true },
-                    i18n: {
-                        restart: 'Заново',
-                        rewind: 'Назад {seektime} сек',
-                        play: 'Играть',
-                        pause: 'Пауза',
-                        fastForward: 'Вперёд {seektime} сек',
-                        seek: 'Перемотка',
-                        played: 'Проиграно',
-                        buffered: 'Буфер',
-                        currentTime: 'Текущее время',
-                        duration: 'Длительность',
-                        volume: 'Громкость',
-                        mute: 'Без звука',
-                        unmute: 'Со звуком',
-                        enterFullscreen: 'На весь экран',
-                        exitFullscreen: 'Выйти из полноэкранного',
-                        settings: 'Настройки',
-                        speed: 'Скорость',
-                        normal: 'Обычная',
-                        quality: 'Качество',
-                        loop: 'Повтор',
-                        start: 'Начало',
-                        end: 'Конец',
-                        all: 'Все',
-                        reset: 'Сброс',
-                        disabled: 'Выкл',
-                        enabled: 'Вкл',
-                        advertisement: 'Реклама',
-                        qualityBadge: {
-                            2160: '4K',
-                            1440: 'HD',
-                            1080: 'HD',
-                            720: 'HD',
-                            576: 'SD',
-                            480: 'SD',
-                        },
-                    },
-                });
-            });
-        });
-    </script>
 </body>
 </html>
