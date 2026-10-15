@@ -3,6 +3,7 @@
 
     document.querySelectorAll('.js-player').forEach(function (el) {
         const player = new Plyr(el, {
+            ratio: '16:9',
             controls: [
                 'play-large', 'restart', 'rewind', 'play',
                 'fast-forward', 'progress', 'current-time', 'duration',

@@ -57,6 +57,16 @@
     transform: scale(1.05);
 }
 
+.plyr__video-wrapper {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+}
+
+.plyr video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
 
 /* ---------- Меню настроек (скорость, качество) ---------- */
 .plyr__menu__container {
