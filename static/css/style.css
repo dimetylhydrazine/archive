@@ -146,6 +146,48 @@ button {
     padding: 16px 0;
     border-bottom: 1px solid var(--border);
     align-items: center;
+    overflow-x: auto;          /* auto лучше, чем scroll (скроллбар не виден, когда не нужен) */
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    
+    /* Скрытие стандартного скроллбара для аккуратного вида */
+    scrollbar-width: none;     /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari, Opera */
+}
+
+.nav-block {
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: lowercase;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;            /* Запрещает сжиматься кнопкам */
+    text-decoration: none;
+}
+
+/* Стили для блока авторизации / админки справа */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;         /* Прижимает блок вправо */
+    flex-shrink: 0;            /* Запрещает правому блоку сжиматься */
 }
 
 .nav-block {
@@ -162,6 +204,7 @@ button {
     text-transform: lowercase;
     transition: all 0.15s;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .nav-block:hover {
@@ -761,11 +804,11 @@ button {
         padding: 0 12px;
     }
     .cards {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: 1fr;
         gap: 12px;
     }
     .channels {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: 1fr;
         gap: 10px;
     }
     .channel-card {
