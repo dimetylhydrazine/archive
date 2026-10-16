@@ -7,7 +7,6 @@ from django.conf import settings
 
 from .covers import cover_rel_path
 
-
 logger = logging.getLogger(__name__)
 
 FFMPEG = 'ffmpeg'
@@ -15,17 +14,15 @@ FFPROBE = 'ffprobe'
 DEFAULT_TIMEOUT = 15
 
 
-# ---------- Общие утилиты ----------
-
 def _run_ffmpeg(cmd: list[str], out: Path, timeout: int) -> bool:
-    """Запускает ffmpeg, возвращает True, если файл создан и непустой."""
+    """Run ffmpeg. Return True if the output file was created and is non-empty."""
     try:
         r = subprocess.run(cmd, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         logger.warning('ffmpeg timeout: %s', out.name)
         return False
     except FileNotFoundError:
-        logger.error('ffmpeg не найден. Установи ffmpeg.')
+        logger.error('ffmpeg is not installed')
         raise
 
     if r.returncode != 0:
@@ -35,7 +32,7 @@ def _run_ffmpeg(cmd: list[str], out: Path, timeout: int) -> bool:
 
 
 def _save_cover_bytes(data: bytes, audio_rel_path: str, ext: str) -> str:
-    """Сохраняет байты в _covers, возвращает rel-путь или ''."""
+    """Save raw bytes into _covers. Return rel path or ''."""
     rel = cover_rel_path(audio_rel_path, ext=ext)
     dest = Path(settings.MEDIA_ROOT) / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -47,23 +44,17 @@ def _save_cover_bytes(data: bytes, audio_rel_path: str, ext: str) -> str:
     return rel
 
 
-def _cover_already_exists(audio_rel_path: str, ext: str = '.jpg') -> tuple[bool, str]:
-    """Проверяет, есть ли уже обложка. Возвращает (exists, rel_path)."""
-    rel = cover_rel_path(audio_rel_path, ext=ext)
+def _cover_already_exists(source_rel_path: str, ext: str = '.jpg') -> tuple[bool, str]:
+    """Return (exists, rel_path) for a cover."""
+    rel = cover_rel_path(source_rel_path, ext=ext)
     dest = Path(settings.MEDIA_ROOT) / rel
     if dest.exists() and dest.stat().st_size > 0:
         return True, rel
     return False, rel
 
 
-# ---------- Видео: длительность и обложка ----------
-
-def get_duration(video_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None:
-    """Длительность видео через ffprobe."""
-    return _ffprobe_duration(video_path, timeout)
-
-
 def _ffprobe_duration(path: Path, timeout: int) -> int | None:
+    """Return duration in seconds via ffprobe, or None on failure."""
     cmd = [
         FFPROBE, '-v', 'error',
         '-show_entries', 'format=duration',
@@ -75,7 +66,7 @@ def _ffprobe_duration(path: Path, timeout: int) -> int | None:
     except subprocess.TimeoutExpired:
         return None
     except FileNotFoundError:
-        logger.error('ffprobe не найден')
+        logger.error('ffprobe is not installed')
         raise
     if r.returncode != 0:
         return None
@@ -85,8 +76,13 @@ def _ffprobe_duration(path: Path, timeout: int) -> int | None:
         return None
 
 
+def get_duration(video_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None:
+    """Return video duration in seconds."""
+    return _ffprobe_duration(video_path, timeout)
+
+
 def has_embedded_cover(video_path: Path, timeout: int = 10) -> bool:
-    """True, если в файле есть mjpeg/png поток-обложка."""
+    """Return True if the file has an embedded mjpeg/png cover stream."""
     cmd = [
         FFPROBE, '-v', 'error',
         '-select_streams', 'v',
@@ -111,41 +107,44 @@ def has_embedded_cover(video_path: Path, timeout: int = 10) -> bool:
 def generate_thumbnail(video_path: Path, video_rel_path: str,
                        at_sec: int = 1, timeout: int = 30) -> str:
     """
-    Обложка для видео: встроенная → первый кадр → кадр на at_sec.
-    Возвращает rel-путь или ''.
+    Build a cover for a video: embedded cover -> first frame -> frame at at_sec.
+    Return rel path or ''.
     """
     exists, rel = _cover_already_exists(video_rel_path)
     if exists:
         return rel
 
     dest = Path(settings.MEDIA_ROOT) / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix('.tmp.jpg')
 
-    # 1) встроенная обложка
     if has_embedded_cover(video_path):
         cmd = [
             FFMPEG, '-y', '-i', str(video_path),
             '-map', '0:v', '-map', '-0:V',
             '-c', 'copy', '-frames:v', '1',
-            '-f', 'image2', str(tmp),
+            '-f', 'image2', '-update', '1',
+            str(tmp),
         ]
         if _run_ffmpeg(cmd, tmp, timeout):
             tmp.rename(dest)
             return rel
 
-    # 2) первый кадр
     cmd = [
         FFMPEG, '-y', '-i', str(video_path),
-        '-frames:v', '1', '-q:v', '2', str(tmp),
+        '-frames:v', '1', '-q:v', '2',
+        '-update', '1',
+        str(tmp),
     ]
     if _run_ffmpeg(cmd, tmp, timeout):
         tmp.rename(dest)
         return rel
 
-    # 3) кадр на at_sec
     cmd = [
         FFMPEG, '-y', '-ss', str(at_sec), '-i', str(video_path),
-        '-frames:v', '1', '-q:v', '2', str(tmp),
+        '-frames:v', '1', '-q:v', '2',
+        '-update', '1',
+        str(tmp),
     ]
     if _run_ffmpeg(cmd, tmp, timeout):
         tmp.rename(dest)
@@ -156,18 +155,8 @@ def generate_thumbnail(video_path: Path, video_rel_path: str,
     return ''
 
 
-# ---------- Аудио: длительность и обложка ----------
-
-def get_audio_duration(audio_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None:
-    """Длительность: MP3 через mutagen, остальное — ffprobe."""
-    if audio_path.suffix.lower() == '.mp3':
-        d = _mp3_duration(audio_path)
-        if d is not None:
-            return d
-    return _ffprobe_duration(audio_path, timeout)
-
-
 def _mp3_duration(path: Path) -> int | None:
+    """Return MP3 duration in seconds via mutagen, or None on failure."""
     try:
         from mutagen.mp3 import MP3
         audio = MP3(str(path))
@@ -178,17 +167,17 @@ def _mp3_duration(path: Path) -> int | None:
     return None
 
 
-def extract_audio_cover(audio_path: Path, audio_rel_path: str,
-                        timeout: int = DEFAULT_TIMEOUT) -> str:
-    """Обложка: MP3 → mutagen, остальное → ffmpeg."""
+def get_audio_duration(audio_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None:
+    """Return audio duration: MP3 via mutagen, everything else via ffprobe."""
     if audio_path.suffix.lower() == '.mp3':
-        rel = _extract_mp3_cover(audio_path, audio_rel_path)
-        if rel:
-            return rel
-    return _extract_audio_cover_ffmpeg(audio_path, audio_rel_path, timeout)
+        d = _mp3_duration(audio_path)
+        if d is not None:
+            return d
+    return _ffprobe_duration(audio_path, timeout)
 
 
 def _extract_mp3_cover(audio_path: Path, audio_rel_path: str) -> str:
+    """Extract the ID3 APIC cover from an MP3 file. Return rel path or ''."""
     from mutagen.id3 import ID3, ID3NoHeaderError
 
     exists, rel = _cover_already_exists(audio_rel_path)
@@ -220,17 +209,20 @@ def _extract_mp3_cover(audio_path: Path, audio_rel_path: str) -> str:
 
 def _extract_audio_cover_ffmpeg(audio_path: Path, audio_rel_path: str,
                                  timeout: int) -> str:
+    """Extract an embedded cover from an audio file via ffmpeg. Return rel path or ''."""
     exists, rel = _cover_already_exists(audio_rel_path)
     if exists:
         return rel
 
     dest = Path(settings.MEDIA_ROOT) / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix('.tmp.jpg')
 
     cmd = [
         FFMPEG, '-y', '-i', str(audio_path),
         '-an', '-c:v', 'copy', '-frames:v', '1',
-        '-f', 'image2', str(tmp),
+        '-f', 'image2', '-update', '1',
+        str(tmp),
     ]
     if _run_ffmpeg(cmd, tmp, timeout):
         tmp.rename(dest)
@@ -239,3 +231,13 @@ def _extract_audio_cover_ffmpeg(audio_path: Path, audio_rel_path: str,
     if tmp.exists():
         tmp.unlink()
     return ''
+
+
+def extract_audio_cover(audio_path: Path, audio_rel_path: str,
+                        timeout: int = DEFAULT_TIMEOUT) -> str:
+    """Extract audio cover: MP3 via mutagen, everything else via ffmpeg."""
+    if audio_path.suffix.lower() == '.mp3':
+        rel = _extract_mp3_cover(audio_path, audio_rel_path)
+        if rel:
+            return rel
+    return _extract_audio_cover_ffmpeg(audio_path, audio_rel_path, timeout)

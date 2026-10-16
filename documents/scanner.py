@@ -4,9 +4,8 @@ from pathlib import Path
 from django.db import transaction
 from django.utils.text import slugify
 
-from .models import Channel, Playlist, Document
+from .models import Channel, Document, Playlist
 from .parsing import parse_filename
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ def scan_documents(root: Path, media_root: Path) -> dict:
     media_root = Path(media_root).resolve()
     stats = {'channels': 0, 'playlists': 0, 'documents': 0, 'errors': []}
 
-    logger.info('Сканирование документов: %s', root)
+    logger.info('scan documents: %s', root)
 
     with transaction.atomic():
         for channel_dir in sorted(p for p in root.iterdir() if p.is_dir()):

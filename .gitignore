@@ -42,3 +42,5 @@ htmlcov/
 # test
 .pytest_cache/
 .settings.py.old
+
+.ruff_cache

@@ -1,6 +1,6 @@
 # archive/models.py
-from django.db import models
 from django.contrib.postgres.indexes import GinIndex
+from django.db import models
 
 
 class Channel(models.Model):

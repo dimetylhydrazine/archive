@@ -1,6 +1,7 @@
 # documents/admin.py
 from django.contrib import admin
-from .models import Channel, Playlist, Document, Category
+
+from .models import Category, Channel, Document, Playlist
 
 
 @admin.register(Channel)
@@ -16,7 +17,8 @@ class PlaylistAdmin(admin.ModelAdmin):
     list_filter = ('channel',)
 
 from django.contrib import admin
-from .models import Channel, Playlist, Document, Category
+
+from .models import Channel, Playlist
 
 
 @admin.register(Category)
@@ -31,4 +33,4 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'channel', 'recorded_at', 'enrich_failed')
     list_filter = ('channel', 'categories', 'recorded_at')
     search_fields = ('title', 'filename')
-    filter_horizontal = ('categories',)   # ← удобный виджет M2M
+    filter_horizontal = ('categories',)

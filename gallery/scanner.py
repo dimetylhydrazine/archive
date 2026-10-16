@@ -7,7 +7,6 @@ from django.utils.text import slugify
 from .models import Category, Image
 from .parsing import parse_filename
 
-
 logger = logging.getLogger(__name__)
 
 IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.heic', '.avif'}

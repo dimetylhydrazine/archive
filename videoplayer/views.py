@@ -1,20 +1,19 @@
 import random
-from django.core.paginator import Paginator
-from django.db.models import F, Func, Value, CharField, Count, Q
-from django.shortcuts import render, get_object_or_404
 
-from .models import Video, Channel, Playlist, Audio
-from .search import search_model
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import CharField, Count, F, Func, Value
+from django.shortcuts import get_object_or_404, render
 
+from .models import Audio, Channel, Playlist, Video
+from .search import search_model
 
 PAGE_SIZE = 24
 
 
-# ---------- Утилиты ----------
-
 class MD5Random(Func):
-    """md5(CONCAT(id, ':', seed)) — стабильный псевдослучайный ключ."""
+    """md5(CONCAT(id, ':', seed)) — stable pseudo-random key."""
+
     function = 'md5'
     template = "%(function)s(CONCAT(%(expressions)s))"
     arity = 2
@@ -23,8 +22,10 @@ class MD5Random(Func):
 
 def _shuffled_qs(request, model):
     """
-    Возвращает queryset, отсортированный псевдослучайно,
-    с seed в сессии (стабильно между страницами).
+    Return a queryset ordered pseudo-randomly.
+
+    Seed is stored in the session so that ordering stays stable
+    across paginated pages. Passing ?shuffle=1 regenerates the seed.
     """
     if 'shuffle_seed' not in request.session:
         request.session['shuffle_seed'] = random.randint(1, 2**31 - 1)
@@ -45,11 +46,27 @@ def _shuffled_qs(request, model):
 
 
 def _paginate(request, qs, per_page=PAGE_SIZE):
+    """Paginate a queryset and return (paginator, page_obj)."""
     paginator = Paginator(qs, per_page)
     return paginator, paginator.get_page(request.GET.get('page'))
 
 
-# ---------- Списки ----------
+def _neighbors(item):
+    """
+    Return (prev, next) items in the same channel ordered by date.
+
+    Returns (None, None) when the item has no recorded date.
+    """
+    if item.recorded_at is None:
+        return None, None
+    base = type(item).objects.filter(
+        channel=item.channel,
+        recorded_at__isnull=False,
+    )
+    prev_item = base.filter(recorded_at__gt=item.recorded_at).order_by('recorded_at').first()
+    next_item = base.filter(recorded_at__lt=item.recorded_at).order_by('-recorded_at').first()
+    return prev_item, next_item
+
 
 @login_required
 def video_list(request):
@@ -61,6 +78,7 @@ def video_list(request):
         'shuffle_seed': seed,
     })
 
+
 @login_required
 def audio_list(request):
     qs, seed = _shuffled_qs(request, Audio)
@@ -70,6 +88,7 @@ def audio_list(request):
         'paginator': paginator,
         'shuffle_seed': seed,
     })
+
 
 @login_required
 def channel_list(request):
@@ -88,7 +107,6 @@ def channel_list(request):
     })
 
 
-# ---------- Детали ----------
 @login_required
 def channel_detail(request, slug):
     channel = get_object_or_404(Channel, slug=slug, is_visible=True)
@@ -104,7 +122,6 @@ def channel_detail(request, slug):
         .order_by('name')
     )
 
-    # видео и аудио в корне канала — с пагинацией
     videos_qs = (
         channel.videos
         .filter(playlist__isnull=True)
@@ -131,6 +148,7 @@ def channel_detail(request, slug):
         'total_videos': channel.videos.count(),
         'total_audios': channel.audios.count(),
     })
+
 
 @login_required
 def playlist_detail(request, pk):
@@ -166,6 +184,7 @@ def playlist_detail(request, pk):
         'total_audios': playlist.audios.count(),
     })
 
+
 @login_required
 def video_detail(request, pk):
     video = get_object_or_404(
@@ -179,6 +198,7 @@ def video_detail(request, pk):
         'prev_video': prev_video,
         'next_video': next_video,
     })
+
 
 @login_required
 def audio_detail(request, pk):
@@ -194,21 +214,6 @@ def audio_detail(request, pk):
         'next_audio': next_audio,
     })
 
-
-def _neighbors(item):
-    """Соседние элементы по дате в том же канале."""
-    if item.recorded_at is None:
-        return None, None
-    base = type(item).objects.filter(
-        channel=item.channel,
-        recorded_at__isnull=False,
-    )
-    prev_item = base.filter(recorded_at__gt=item.recorded_at).order_by('recorded_at').first()
-    next_item = base.filter(recorded_at__lt=item.recorded_at).order_by('-recorded_at').first()
-    return prev_item, next_item
-
-
-from .search import search_model
 
 @login_required
 def search(request):

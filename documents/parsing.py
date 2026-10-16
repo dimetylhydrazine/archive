@@ -2,7 +2,6 @@ import re
 from datetime import date, datetime
 from pathlib import Path
 
-
 DATE_PATTERN = re.compile(r'^(\d{8})\s*-\s*(.+?)(?:\.f\d+)?$')
 
 

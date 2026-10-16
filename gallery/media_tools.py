@@ -4,7 +4,6 @@ from pathlib import Path
 
 from django.conf import settings
 
-
 logger = logging.getLogger(__name__)
 
 THUMB_DIR_NAME = '_thumbs'
@@ -20,7 +19,8 @@ def thumb_rel_path(source_rel_path: str, ext: str = '.webp') -> str:
 def generate_thumb(img_path: Path, img_rel_path: str) -> str:
     """Миниатюра через Pillow. Возвращает rel-путь или ''."""
     try:
-        from PIL import Image as PILImage, ImageOps
+        from PIL import Image as PILImage
+        from PIL import ImageOps
     except ImportError:
         logger.error('Pillow не установлен')
         return ''

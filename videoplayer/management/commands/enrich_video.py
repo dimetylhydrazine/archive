@@ -8,17 +8,18 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from django.db.models import Q
 
+from videoplayer.media_tools import generate_thumbnail, get_duration
 from videoplayer.models import Video
-from videoplayer.media_tools import get_duration, generate_thumbnail
-
 
 logger = logging.getLogger(__name__)
 
 
 def _process_one(video_id: int, force: bool) -> tuple[int, bool, bool, str]:
     """
-    В потоке: обновляет duration и thumbnail.
-    Возвращает (video_id, duration_set, thumb_set, error).
+    Update duration and thumbnail for a single video.
+
+    Returns (video_id, duration_set, thumb_set, error).
+    Runs in a worker thread, so it manages its own DB connection.
     """
     close_old_connections()
     try:
@@ -28,7 +29,7 @@ def _process_one(video_id: int, force: bool) -> tuple[int, bool, bool, str]:
             logger.warning('video %s not found', video_id)
             return video_id, False, False, 'not found'
 
-        full = Path(settings.MEDIA_ROOT) / v.file_path   # ← используем file_path
+        full = Path(settings.MEDIA_ROOT) / v.file_path
         if not full.exists():
             logger.warning('file missing: %s', full)
             return video_id, False, False, 'file missing'
@@ -69,15 +70,31 @@ def _process_one(video_id: int, force: bool) -> tuple[int, bool, bool, str]:
 
 
 class Command(BaseCommand):
-    help = 'Заполняет duration и thumbnail для видео (параллельно)'
+    help = 'Fill duration and thumbnail for videos (parallel)'
 
     def add_arguments(self, parser):
-        parser.add_argument('--force', action='store_true',
-                            help='Перегенерить всё, даже если уже заполнено')
-        parser.add_argument('--workers', type=int,
-                            default=min(8, os.cpu_count() or 4))
-        parser.add_argument('--limit', type=int, default=0)
-        parser.add_argument('--verbose', action='store_true')
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Regenerate everything, even if already filled',
+        )
+        parser.add_argument(
+            '--workers',
+            type=int,
+            default=min(8, os.cpu_count() or 4),
+            help='Number of worker threads',
+        )
+        parser.add_argument(
+            '--limit',
+            type=int,
+            default=0,
+            help='Process only the first N videos (for testing)',
+        )
+        parser.add_argument(
+            '--verbose',
+            action='store_true',
+            help='Enable debug logging',
+        )
 
     def handle(self, *args, **opts):
         if opts['verbose']:
@@ -97,7 +114,8 @@ class Command(BaseCommand):
 
         total = len(ids)
         logger.info('enrich: total=%s workers=%s force=%s', total, workers, force)
-        self.stdout.write(f'Обрабатываю: {total} видео в {workers} потоков')
+        self.stdout.write(f'Processing {total} videos with {workers} workers')
+
         if total == 0:
             return
 
@@ -113,11 +131,13 @@ class Command(BaseCommand):
                     failed += 1
                     done += 1
                     continue
+
                 done += 1
                 dur_ok += d_set
                 thumb_ok += t_set
                 if err:
                     failed += 1
+
                 if done % 25 == 0 or done == total:
                     self.stdout.write(
                         f'  [{done}/{total}] duration+{dur_ok}, '
@@ -125,8 +145,8 @@ class Command(BaseCommand):
                     )
 
         self.stdout.write(self.style.SUCCESS(
-            f'\nГотово: {done} обработано, duration={dur_ok}, '
-            f'thumbnail={thumb_ok}, ошибок={failed}'
+            f'\nDone: {done} processed, duration={dur_ok}, '
+            f'thumbnail={thumb_ok}, failed={failed}'
         ))
         logger.info('enrich done: done=%s dur=%s thumb=%s fail=%s',
                     done, dur_ok, thumb_ok, failed)

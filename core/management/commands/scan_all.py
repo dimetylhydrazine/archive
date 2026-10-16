@@ -1,10 +1,11 @@
 from pathlib import Path
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from videoplayer.scanner import scan, scan_audio
 from documents.scanner import scan_documents
 from gallery.scanner import scan_gallery
+from videoplayer.scanner import scan, scan_audio
 
 
 class Command(BaseCommand):

@@ -1,12 +1,13 @@
 from django.contrib import admin
-from .models import Channel, Playlist, Video, Thumbnail
+
+from .models import Channel, Playlist, Thumbnail, Video
 
 
 @admin.register(Channel)
 class ChannelAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'is_visible')
     list_filter = ('is_visible',)
-    list_editable = ('is_visible',)   # переключать прямо из списка
+    list_editable = ('is_visible',)
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 

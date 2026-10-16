@@ -1,7 +1,7 @@
 def index(request):
-    from videoplayer.models import Video, Audio
     from documents.models import Document
     from gallery.models import Image
+    from videoplayer.models import Audio, Video
 
     return render(request, 'core/index.html', {
         'video_count': Video.objects.filter(channel__is_visible=True).count(),

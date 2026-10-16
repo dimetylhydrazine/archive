@@ -1,24 +1,23 @@
 """
-Поиск по архиву: FTS (PostgreSQL) + trigram + транслит + смена раскладки.
+Archive search: FTS (PostgreSQL) + trigram + transliteration + layout switch.
 
-Три механизма:
-1. FTS (russian/english/simple) — точные слова, стемминг.
-2. Trigram — опечатки (fallback, если FTS пуст).
-3. Translit + layout_switch — кросс-алфавит и забытая раскладка.
+Three mechanisms:
+1. FTS (russian/english/simple) — exact words, stemming.
+2. Trigram — typos (fallback when FTS returns nothing).
+3. Transliteration + layout_switch — cross-alphabet and wrong-keyboard input.
 """
 
 import logging
 
 from django.contrib.postgres.search import (
-    SearchVector, SearchQuery, SearchRank, TrigramSimilarity,
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    TrigramSimilarity,
 )
 
 logger = logging.getLogger(__name__)
 
-
-# ============================================================
-#  Раскладка QWERTY ↔ ЙЦУКЕН
-# ============================================================
 
 QWERTY_TO_JCUKEN = {
     'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н',
@@ -32,33 +31,8 @@ QWERTY_TO_JCUKEN = {
 JCUKEN_TO_QWERTY = {v: k for k, v in QWERTY_TO_JCUKEN.items()}
 
 
-def layout_switch(s: str) -> str:
-    """
-    Переключает раскладку: 'руддщ' → 'hello', 'hello' → 'руддщ'.
-    Если символ не в маппинге — оставляет как есть.
-    Регистр сохраняется.
-    """
-    result = []
-    for c in s:
-        lower = c.lower()
-        if lower in QWERTY_TO_JCUKEN:
-            mapped = QWERTY_TO_JCUKEN[lower]
-        elif lower in JCUKEN_TO_QWERTY:
-            mapped = JCUKEN_TO_QWERTY[lower]
-        else:
-            mapped = c
-        if c.isupper():
-            mapped = mapped.upper()
-        result.append(mapped)
-    return ''.join(result)
-
-
-# ============================================================
-#  Словарь исключений: русское написание → английское
-# ============================================================
-
 TRANSLIT_EXCEPTIONS = {
-    # ОС
+    # OS
     'линукс': 'linux',
     'виндовс': 'windows',
     'виндоус': 'windows',
@@ -67,7 +41,7 @@ TRANSLIT_EXCEPTIONS = {
     'дебиан': 'debian',
     'арч': 'arch',
     'федоро': 'fedora',
-    # языки
+    # languages
     'питон': 'python',
     'пайтон': 'python',
     'джава': 'java',
@@ -82,7 +56,7 @@ TRANSLIT_EXCEPTIONS = {
     'пхп': 'php',
     'перл': 'perl',
     'скала': 'scala',
-    # веб / фреймворки
+    # web / frameworks
     'джанго': 'django',
     'фласк': 'flask',
     'реакт': 'react',
@@ -91,11 +65,11 @@ TRANSLIT_EXCEPTIONS = {
     'ноуд': 'node',
     'нода': 'node',
     'экспресс': 'express',
-    'ларavel': 'laravel',
+    'ларавел': 'laravel',
     'симфони': 'symfony',
     'бустрап': 'bootstrap',
     'тейлвинд': 'tailwind',
-    # БД
+    # databases
     'постгрес': 'postgres',
     'постгрескл': 'postgresql',
     'майскл': 'mysql',
@@ -121,7 +95,7 @@ TRANSLIT_EXCEPTIONS = {
     'терраформ': 'terraform',
     'прометеус': 'prometheus',
     'графана': 'grafana',
-    # редакторы
+    # editors
     'вим': 'vim',
     'эмекс': 'emacs',
     'вскод': 'vscode',
@@ -129,7 +103,7 @@ TRANSLIT_EXCEPTIONS = {
     'джетбрейнс': 'jetbrains',
     'пичарм': 'pycharm',
     'интеллидж': 'intellij',
-    # сервисы
+    # services
     'гугл': 'google',
     'ютуб': 'youtube',
     'ютюб': 'youtube',
@@ -143,7 +117,7 @@ TRANSLIT_EXCEPTIONS = {
     'википедия': 'wikipedia',
     'нетфликс': 'netflix',
     'спотифай': 'spotify',
-    # техника
+    # hardware
     'ардуино': 'arduino',
     'распберри': 'raspberry',
     'малинка': 'raspberry',
@@ -153,7 +127,7 @@ TRANSLIT_EXCEPTIONS = {
     'эпл': 'apple',
     'самсунг': 'samsung',
     'сяоми': 'xiaomi',
-    # игры
+    # games
     'майнкрафт': 'minecraft',
     'майн': 'minecraft',
     'дота': 'dota',
@@ -163,7 +137,7 @@ TRANSLIT_EXCEPTIONS = {
     'фортнайт': 'fortnite',
     'скайрим': 'skyrim',
     'ведьмак': 'witcher',
-    # софт
+    # software
     'фотошоп': 'photoshop',
     'иллюстратор': 'illustrator',
     'блендер': 'blender',
@@ -174,9 +148,25 @@ TRANSLIT_EXCEPTIONS = {
 }
 
 
-# ============================================================
-#  Утилиты
-# ============================================================
+def layout_switch(s: str) -> str:
+    """
+    Switch keyboard layout: 'руддщ' -> 'hello', 'hello' -> 'руддщ'.
+    Characters not in the mapping are left as-is. Case is preserved.
+    """
+    result = []
+    for c in s:
+        lower = c.lower()
+        if lower in QWERTY_TO_JCUKEN:
+            mapped = QWERTY_TO_JCUKEN[lower]
+        elif lower in JCUKEN_TO_QWERTY:
+            mapped = JCUKEN_TO_QWERTY[lower]
+        else:
+            mapped = c
+        if c.isupper():
+            mapped = mapped.upper()
+        result.append(mapped)
+    return ''.join(result)
+
 
 def _is_cyrillic(s: str) -> bool:
     return any('\u0400' <= c <= '\u04FF' for c in s)
@@ -187,7 +177,7 @@ def _is_latin(s: str) -> bool:
 
 
 def _dedup(lst: list[str]) -> list[str]:
-    """Убирает дубли и пустые, сохраняет порядок."""
+    """Remove duplicates and empty strings, preserving order."""
     seen = set()
     out = []
     for x in lst:
@@ -197,18 +187,14 @@ def _dedup(lst: list[str]) -> list[str]:
     return out
 
 
-# ============================================================
-#  Варианты запроса
-# ============================================================
-
 def translit_variants(q: str) -> list[str]:
     """
-    Возвращает все варианты запроса:
-    - оригинал
+    Build all query variants:
+    - original
     - lowercase
-    - смена раскладки (qwerty ↔ йцукен)
-    - транслит (кириллица ↔ латиница)
-    - словарь исключений (линукс → linux)
+    - layout switch (qwerty <-> jcuken)
+    - transliteration (cyrillic <-> latin)
+    - exception dictionary (линукс -> linux)
     """
     variants = [q]
     q_lower = q.lower()
@@ -216,14 +202,12 @@ def translit_variants(q: str) -> list[str]:
     if q_lower != q:
         variants.append(q_lower)
 
-    # 1. Раскладка
     layout = layout_switch(q)
     if layout and layout != q:
         variants.append(layout)
         if layout.lower() != layout:
             variants.append(layout.lower())
 
-    # 2. Транслит
     try:
         from transliterate import translit
         if _is_cyrillic(q):
@@ -237,17 +221,15 @@ def translit_variants(q: str) -> list[str]:
                 variants.append(cyr)
                 variants.append(cyr.lower())
     except ImportError:
-        logger.warning('transliterate не установлен — пропускаю транслит')
+        logger.warning('transliterate is not installed — skipping transliteration')
     except Exception as e:
-        logger.warning('translit fail для %r: %s', q, e)
+        logger.warning('translit failed for %r: %s', q, e)
 
-    # 3. Раскладка от каждого варианта
     for v in list(variants):
         lv = layout_switch(v)
         if lv and lv not in variants:
             variants.append(lv)
 
-    # 4. Словарь исключений — по каждому слову
     for v in list(variants):
         for word in v.lower().split():
             if word in TRANSLIT_EXCEPTIONS:
@@ -258,14 +240,10 @@ def translit_variants(q: str) -> list[str]:
     return _dedup(variants)
 
 
-# ============================================================
-#  FTS: вектор и запрос
-# ============================================================
-
 def build_vector() -> SearchVector:
     """
-    FTS-вектор: title (A) + channel (B) + playlist (C).
-    Два конфига одновременно — russian + english, чтобы ловить оба языка.
+    FTS vector: title (A) + channel (B) + playlist (C).
+    Two configs at once — russian + english — to match both languages.
     """
     return (
         SearchVector('title', weight='A', config='russian') +
@@ -279,10 +257,10 @@ def build_vector() -> SearchVector:
 
 def build_query(q: str) -> SearchQuery:
     """
-    SearchQuery с OR по всем вариантам запроса.
-    Для кириллицы — russian + simple.
-    Для латиницы — english + simple.
-    Ограничиваем 6 вариантами, чтобы не взорвать запрос.
+    SearchQuery with OR across all query variants.
+    Cyrillic variants use russian + simple.
+    Latin variants use english + simple.
+    Capped at 6 variants to keep the query manageable.
     """
     variants = translit_variants(q)[:6]
     queries = []
@@ -295,7 +273,7 @@ def build_query(q: str) -> SearchQuery:
             try:
                 queries.append(SearchQuery(v, config=cfg))
             except Exception as e:
-                logger.debug('SearchQuery fail %r/%s: %s', v, cfg, e)
+                logger.debug('SearchQuery failed for %r/%s: %s', v, cfg, e)
 
     if not queries:
         return SearchQuery(q, config='simple')
@@ -306,17 +284,13 @@ def build_query(q: str) -> SearchQuery:
     return combined
 
 
-# ============================================================
-#  Поиск
-# ============================================================
-
 def search_model(model, q: str, limit: int = 60,
                  fts_min: float = 0.01,
                  trgm_min: float = 0.4):
     """
-    Ищет в модели (Video/Audio):
-    1. FTS — точные слова, стемминг, транслит-варианты.
-    2. Если FTS пуст — trigram для опечаток.
+    Search in the given model (Video/Audio).
+    1. FTS — exact words, stemming, translit variants.
+    2. If FTS is empty — trigram fallback for typos.
     """
     if not q or not q.strip():
         return model.objects.none()
@@ -324,7 +298,6 @@ def search_model(model, q: str, limit: int = 60,
     vector = build_vector()
     query = build_query(q)
 
-    # 1) FTS
     fts_qs = (
         model.objects
         .filter(channel__is_visible=True)
@@ -336,7 +309,6 @@ def search_model(model, q: str, limit: int = 60,
     if fts_qs.exists():
         return fts_qs
 
-    # 2) Fallback: trigram (опечатки)
     return (
         model.objects
         .filter(channel__is_visible=True)

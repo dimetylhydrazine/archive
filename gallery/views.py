@@ -1,10 +1,10 @@
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
-from django.db.models import Count
-from django.conf import settings
-from pathlib import Path
 
-from .models import Image, Category
+from django.conf import settings
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, render
+
+from .models import Category, Image
 
 
 def image_list(request):

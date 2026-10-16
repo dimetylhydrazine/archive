@@ -4,9 +4,8 @@ from pathlib import Path
 from django.db import transaction
 from django.utils.text import slugify
 
-from .models import Channel, Playlist, Video, Audio
+from .models import Audio, Channel, Playlist, Video
 from .parsing import parse_filename
-
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +14,9 @@ AUDIO_EXTS = {'.mp3', '.flac', '.m4a', '.aac', '.ogg', '.opus', '.wav'}
 SKIP_DIR_PREFIX = '_'
 
 
-
-
 def _scan_tree(root: Path, media_root: Path, upsert_file, stats: dict,
-               exts: set[str]):
+               exts: set[str]) -> dict:
+    """Walk a directory tree, creating Channel/Playlist/Video-or-Audio records."""
     root = root.resolve()
     media_root = Path(media_root).resolve()
 
@@ -39,6 +37,7 @@ def _scan_tree(root: Path, media_root: Path, upsert_file, stats: dict,
 
 
 def _walk(path, channel, parent_playlist, media_root, stats, upsert_file, exts):
+    """Recursively walk a channel/playlist directory."""
     files = list(path.iterdir())
     target_files = [f for f in files
                     if f.is_file() and f.suffix.lower() in exts]
@@ -63,22 +62,6 @@ def _walk(path, channel, parent_playlist, media_root, stats, upsert_file, exts):
         _walk(d, channel, playlist, media_root, stats, upsert_file, exts)
 
 
-def scan(root: Path, media_root: Path) -> dict:
-    logger.info('Сканирование видео: root=%s', root)
-    stats = {'channels': 0, 'playlists': 0, 'videos': 0, 'errors': []}
-    _scan_tree(root, media_root, _upsert_video, stats, VIDEO_EXTS)
-    logger.info('Видео готово: %s', stats)
-    return stats
-
-
-def scan_audio(root: Path, media_root: Path) -> dict:
-    logger.info('Сканирование аудио: root=%s', root)
-    stats = {'channels': 0, 'playlists': 0, 'audios': 0, 'errors': []}
-    _scan_tree(root, media_root, _upsert_audio, stats, AUDIO_EXTS)
-    logger.info('Аудио готово: %s', stats)
-    return stats
-
-
 def _get_or_create_channel(path: Path, media_root: Path) -> Channel:
     name = path.name
     rel = str(path.relative_to(media_root))
@@ -93,7 +76,8 @@ def _get_or_create_channel(path: Path, media_root: Path) -> Channel:
     return channel
 
 
-def _get_or_create_playlist(path: Path, channel: Channel, parent, media_root: Path) -> Playlist:
+def _get_or_create_playlist(path: Path, channel: Channel, parent,
+                            media_root: Path) -> Playlist:
     rel = str(path.relative_to(media_root))
     playlist, created = Playlist.objects.update_or_create(
         channel=channel, parent=parent, name=path.name,
@@ -103,20 +87,9 @@ def _get_or_create_playlist(path: Path, channel: Channel, parent, media_root: Pa
     return playlist
 
 
-# ============================================================
-#  Видео
-# ============================================================
-
-
-
-def _upsert_video_with_exts(exts: set[str]):
-    """Замыкание: передаёт exts в _walk."""
-    def wrapper(root, media_root, upsert_file, stats):
-        pass
-    return wrapper
-
-
-def _upsert_video(vf: Path, channel: Channel, playlist, media_root: Path, stats: dict):
+def _upsert_video(vf: Path, channel: Channel, playlist, media_root: Path,
+                  stats: dict) -> None:
+    """Create or update a Video record for a single file."""
     rel = str(vf.relative_to(media_root))
     recorded_at, title = parse_filename(vf.name)
 
@@ -135,13 +108,9 @@ def _upsert_video(vf: Path, channel: Channel, playlist, media_root: Path, stats:
     logger.debug('video %s: %s', 'created' if created else 'updated', rel)
 
 
-# ============================================================
-#  Аудио
-# ============================================================
-
-
-
-def _upsert_audio(af: Path, channel: Channel, playlist, media_root: Path, stats: dict):
+def _upsert_audio(af: Path, channel: Channel, playlist, media_root: Path,
+                  stats: dict) -> None:
+    """Create or update an Audio record for a single file."""
     rel = str(af.relative_to(media_root))
     recorded_at, title = parse_filename(af.name)
 
@@ -158,3 +127,21 @@ def _upsert_audio(af: Path, channel: Channel, playlist, media_root: Path, stats:
     )
     stats['audios'] += 1
     logger.debug('audio: %s', rel)
+
+
+def scan(root: Path, media_root: Path) -> dict:
+    """Scan a video archive and return scan statistics."""
+    logger.info('Scanning videos: root=%s', root)
+    stats = {'channels': 0, 'playlists': 0, 'videos': 0, 'errors': []}
+    _scan_tree(root, media_root, _upsert_video, stats, VIDEO_EXTS)
+    logger.info('Videos done: %s', stats)
+    return stats
+
+
+def scan_audio(root: Path, media_root: Path) -> dict:
+    """Scan an audio archive and return scan statistics."""
+    logger.info('Scanning audio: root=%s', root)
+    stats = {'channels': 0, 'playlists': 0, 'audios': 0, 'errors': []}
+    _scan_tree(root, media_root, _upsert_audio, stats, AUDIO_EXTS)
+    logger.info('Audio done: %s', stats)
+    return stats

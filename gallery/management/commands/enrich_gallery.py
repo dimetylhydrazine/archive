@@ -8,9 +8,8 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from django.db.models import Q
 
-from gallery.models import Image
 from gallery.media_tools import generate_thumb, get_dimensions
-
+from gallery.models import Image
 
 logger = logging.getLogger(__name__)
 

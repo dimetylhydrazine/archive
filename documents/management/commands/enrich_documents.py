@@ -8,9 +8,8 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from django.db.models import Q
 
-from documents.models import Document
 from documents.media_tools import generate_cover, get_page_count
-
+from documents.models import Document
 
 logger = logging.getLogger(__name__)
 

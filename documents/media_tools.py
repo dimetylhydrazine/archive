@@ -5,7 +5,6 @@ from pathlib import Path
 
 from django.conf import settings
 
-
 logger = logging.getLogger(__name__)
 
 COVERS_DIR_NAME = '_covers'
@@ -18,7 +17,6 @@ def cover_rel_path(source_rel_path: str, ext: str = '.jpg') -> str:
 
 
 def get_page_count(doc_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None:
-    """Число страниц PDF через pdfinfo."""
     if doc_path.suffix.lower() != '.pdf':
         return None
     cmd = ['pdfinfo', str(doc_path)]
@@ -39,7 +37,6 @@ def get_page_count(doc_path: Path, timeout: int = DEFAULT_TIMEOUT) -> int | None
 
 def generate_cover_pdf(doc_path: Path, doc_rel_path: str,
                        timeout: int = DEFAULT_TIMEOUT) -> str:
-    """Превью первой страницы PDF через pdftoppm."""
     rel = cover_rel_path(doc_rel_path, ext='.jpg')
     dest = Path(settings.MEDIA_ROOT) / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -86,7 +83,6 @@ def generate_cover_pdf(doc_path: Path, doc_rel_path: str,
 
 
 def generate_cover_mupdf(doc_path: Path, doc_rel_path: str) -> str:
-    """Превью через PyMuPDF для epub/fb2/mobi и любых других."""
     rel = cover_rel_path(doc_rel_path, ext='.jpg')
     dest = Path(settings.MEDIA_ROOT) / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -94,7 +90,7 @@ def generate_cover_mupdf(doc_path: Path, doc_rel_path: str) -> str:
         return rel
 
     try:
-        import fitz   # PyMuPDF
+        import fitz  # PyMuPDF
     except ImportError:
         logger.warning('PyMuPDF не установлен')
         return ''
@@ -120,7 +116,6 @@ def generate_cover_mupdf(doc_path: Path, doc_rel_path: str) -> str:
 
 
 def generate_cover(doc_path: Path, doc_rel_path: str) -> str:
-    """Универсальная точка входа."""
     ext = doc_path.suffix.lower()
     if ext == '.pdf':
         rel = generate_cover_pdf(doc_path, doc_rel_path)

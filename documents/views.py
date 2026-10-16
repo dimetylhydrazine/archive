@@ -1,12 +1,8 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
 from django.db.models import Count
+from django.shortcuts import get_object_or_404, render
 
-from .models import Document, Channel, Playlist, Category
-
-
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
+from .models import Category, Channel, Document, Playlist
 
 
 def document_list(request):
@@ -100,11 +96,7 @@ def playlist_detail(request, pk):
         'total_documents': playlist.documents.count(),
     })
 
-from django.core.paginator import Paginator
-from django.db.models import Count
-from django.shortcuts import render, get_object_or_404
 
-from .models import Document, Category
 from .search import search_documents
 
 

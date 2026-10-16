@@ -3,7 +3,10 @@
 import logging
 
 from django.contrib.postgres.search import (
-    SearchVector, SearchQuery, SearchRank, TrigramSimilarity,
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    TrigramSimilarity,
 )
 
 logger = logging.getLogger(__name__)
